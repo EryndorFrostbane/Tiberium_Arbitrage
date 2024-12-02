@@ -8,8 +8,7 @@ import COMMAND
 """
 HÁ DOIS PROBLEMAS PRINCIPAIS QUE AFETA O LUCRO:
 1 - NAS OPERAÇÕES A COMPRA E/OU VENDA NÃO É REALIZADA 100% DA QUANTIA
-2 - A DISCREPÂNCIA É BAIXA, O QUE SIGNIFICA QUE O LUCRO É MENOR E NÃO COBRE AS TAXAS
-3 - VERIFICAR A DISCREPANCIA DE PREÇOS PARA NÃO OPERAR COM SURTOS DE VOLATILIDADE
+2 - VERIFICAR A DISCREPANCIA DE PREÇOS PARA NÃO OPERAR COM SURTOS DE VOLATILIDADE
 """
 def verifica_biblioteca_ccxt():
     # Nome do pacote
@@ -87,15 +86,16 @@ def informar(codigo,par_moeda,preco_par,quantidade):
         print('{} | {} | {} | {}'.format(par_moeda, preco_par, quantidade, 'Erro ao verificar saldo'))
     elif codigo == 502:
         print('{} | {} | {} | {}'.format(par_moeda, preco_par, quantidade, 'Erro ao obter a taxa'))
+    print('\033[1F', end="")
 
 def main():
     corretoras = exchanges.corretoras
-    
+
     try:
         ...
     except Exception as e:
         print(f"Erro: {e}")
-
+    
     corretora = input("Digite a corretora (Em minusculo): ").lower()
     par_moeda_1 = str(input("Digite uma criptomoeda (XRP/USDT): ").upper())
     par_moeda_2 = str(input("Digite uma criptomoeda de peso (BNB/USDT): ").upper())
@@ -114,8 +114,8 @@ def main():
     
     lucro = 0
 
-    exchange = corretoras[corretora]
-    exchange.load_markets()
+    #exchange = corretoras[corretora]
+    #exchange.load_markets()
 
     taxa_total = 0.008
     indice = 0
@@ -153,7 +153,7 @@ def oportunidade(corretora,par_moeda_1,par_moeda_2,par_moeda_3,taxa_total,on_off
         print(f'Preço do par {par_moeda_3}:  {preco_par_3[0]:.8F}')
         print('\033[7F', end="")
 
-        if oportunidade < estrategia:
+        if oportunidade > estrategia:
             return preco_par_1[0],preco_par_2[0],preco_par_3[0]
         else:
             continue
@@ -174,11 +174,12 @@ def arbitragem(corretora, par_moeda_1, par_moeda_2, par_moeda_3, preco_par_1, pr
         print('[{}] Oportunidade Encontrada: {} -> {} -> {}'.format(indice, par_moeda_2, par_moeda_3, par_moeda_1))
         print('Registrada em: {}'.format(hora_atual))
         print('            | Preco | Quantidade | Status')
+        
+        # ------------------------PASSO 1---------------------------------------------
         quantidade = valor_investido / preco_par_2
         quantidade_start = round(quantidade, 6)
-        # ------------------------PASSO 1---------------------------------------------
         if tipo == 'limite':
-            start = COMMAND.comprar('limite', corretora, par_moeda_2, quantidade_start, preco_par_2, 30)  # COMPRA A LIMITE
+            start = COMMAND.comprar('limite', corretora, par_moeda_2, quantidade_start, preco_par_2, 2)  # COMPRA A LIMITE
         else:
             start = COMMAND.comprar('mercado', corretora, par_moeda_2, quantidade_start, None, None)  # COMPRA A MERCADO
 
@@ -187,25 +188,29 @@ def arbitragem(corretora, par_moeda_1, par_moeda_2, par_moeda_3, preco_par_1, pr
             print('\033[1F', end="")
             print('{} | {} | {} | {}'.format(par_moeda_2, preco_par_2, quantidade_start, 'Cancelando...       '))
             print('\033[1F', end="")
-            if cancelar[1] == 203:
-                print('\033[1F', end="")
-                informar(203,par_moeda_2,preco_par_2,quantidade_start)
+            if isinstance(cancelar, tuple):
+                if cancelar[1] == 201:
+                    informar(201,par_moeda_2,preco_par_2,quantidade_start)
+            else:
+                if cancelar == 500:
+                    informar(500, par_moeda_2,preco_par_2,quantidade_start)
+                elif cancelar == 401:
+                    informar(401, par_moeda_2,preco_par_2,quantidade_start)
+                    COMMAND.vender('mercado', corretora, par_moeda_2, start[0]['amount'], None, None)
+                    verificar_start = COMMAND.verificar_ordens_em_aberto(corretora,par_moeda_2)
+                    
+                    if isinstance(verificar_start, tuple):
+                        if verificar_start[1] == 202:
+                            informar(202,par_moeda_2,preco_par_2,quantidade_start)
+                            #acao para cancelar todas ordens em aberto
+                    else:
+                        if verificar_P1 == 201:
+                            informar(201, par_moeda_2,preco_par_2,quantidade_start)
+                        if verificar_P1 == 401:
+                            informar(401, par_moeda_2,preco_par_2,quantidade_start)
+                        if verificar_P1 == 500:
+                            informar(500, par_moeda_2,preco_par_2,quantidade_start)
 
-            elif cancelar[1] == 301:
-                informar(301,par_moeda_2,preco_par_2,quantidade_start)
-                print('\033[1F', end="")
-                COMMAND.vender('mercado', corretora, par_moeda_2, start[0]['amount'], None, None)
-                print('\033[1F', end="")
-                verificar_start = COMMAND.verificar_ordens_em_aberto(corretora,par_moeda_2)
-
-                if verificar_start[1] == 201:
-                    informar(202,par_moeda_2,preco_par_2,quantidade_start)
-
-                time.sleep(1)
-                print('\033[1F', end="")
-                print('{} | {} | {} | {}'.format(par_moeda_2, preco_par_2, quantidade_start, 'Retornando ao inicio'))
-                time.sleep(1)
-                print('\033[5F', end="")
             procurar_oportunidades = True
             continue
 
@@ -215,31 +220,38 @@ def arbitragem(corretora, par_moeda_1, par_moeda_2, par_moeda_3, preco_par_1, pr
         calculo_1 = start[0]['filled'] / preco_par_3
         quantiadade_P1 = round(calculo_1, 7)
         if tipo == 'limite':
-            P1_menor = COMMAND.comprar('limite', corretora, par_moeda_3, quantiadade_P1, preco_par_3, 30)
-        else:
+            P1_menor = COMMAND.comprar('limite', corretora, par_moeda_3, quantiadade_P1, preco_par_3, 2)
+        elif tipo == "mercado":
             P1_menor = COMMAND.comprar('mercado', corretora, par_moeda_3, quantiadade_P1, None, None)
 
         if P1_menor[0]['status'] == 'open':
+            cancelar = COMMAND.cancelar_ordem(corretora, P1_menor[0]['id'], par_moeda_3)
             print('\033[1F', end="")
             print('{} | {} | {} | {}'.format(par_moeda_3, preco_par_3, quantiadade_P1, 'Cancelando...       '))
             print('\033[1F', end="")
-            cancelar = COMMAND.cancelar_ordem(corretora, P1_menor[0]['id'], par_moeda_3)
-            if cancelar[1] == 301:
-                print('{} | {} | {} | {}'.format(par_moeda_3, preco_par_3, quantiadade_P1, 'Erro ao Cancelar'))
-                print('\033[1F', end="")
-                COMMAND.vender('mercado', corretora, par_moeda_2, start[0]['amount'], None, None)
-                print('\033[1F', end="")
-                verificar_P1 = COMMAND.verificar_ordens_em_aberto(corretora,par_moeda_2)
-                if verificar_P1[1] == 201:
-                    print('{} | {} | {} | {}'.format(par_moeda_3, preco_par_3, quantiadade_P1, 'Não há ordens em aberto'))
-                time.sleep(1)
-                print('\033[1F', end="")
-                print('{} | {} | {} | {}'.format(par_moeda_3, preco_par_3, quantiadade_P1, 'Retornando ao inicio'))
-                time.sleep(1)
-                print('\033[6F', end="")
-                procurar_oportunidades = True
-                continue
-            COMMAND.vender('mercado', corretora, par_moeda_2, start[0]['amount'], None, None)
+            if isinstance(cancelar, tuple):
+                if cancelar[1] == 201:
+                    informar(201,par_moeda_3,preco_par_3,quantiadade_P1)
+            else:
+                if cancelar == 500:
+                    informar(500, par_moeda_3,preco_par_3,quantiadade_P1)
+                elif cancelar == 401:
+                    informar(401, par_moeda_3,preco_par_3,quantiadade_P1)
+                    COMMAND.vender('mercado', corretora, par_moeda_2, start[0]['amount'], None, None)
+                    verificar_P1= COMMAND.verificar_ordens_em_aberto(corretora,par_moeda_2)
+                
+                if isinstance(verificar_P1, tuple): 
+                    if verificar_P1[1] == 202:
+                        informar(202, par_moeda_3,preco_par_3,quantiadade_P1)
+                        #acao para cancelar todas ordens em aberto
+                else:
+                    if verificar_P1 == 201:
+                        informar(201, par_moeda_3,preco_par_3,quantiadade_P1)
+                    if verificar_P1 == 401:
+                        informar(401, par_moeda_3,preco_par_3,quantiadade_P1)
+                    if verificar_P1 == 500:
+                        informar(500, par_moeda_3,preco_par_3,quantiadade_P1)
+
             procurar_oportunidades = True
             continue
 
@@ -247,7 +259,7 @@ def arbitragem(corretora, par_moeda_1, par_moeda_2, par_moeda_3, preco_par_1, pr
 
         # ------------------------PASSO 3---------------------------------------------
         if tipo == 'limite':
-            P2_menor = COMMAND.vender('limite', corretora, par_moeda_1, P1_menor[0]['filled'], preco_par_1, 30)
+            P2_menor = COMMAND.vender('limite', corretora, par_moeda_1, P1_menor[0]['filled'], preco_par_1, 2)
         else:
             P2_menor = COMMAND.vender('mercado', corretora, par_moeda_1, P1_menor[0]['filled'], None, None)
 
@@ -256,22 +268,28 @@ def arbitragem(corretora, par_moeda_1, par_moeda_2, par_moeda_3, preco_par_1, pr
             print('{} | {} | {} | {}'.format(par_moeda_1, preco_par_1, P1_menor[0]['filled'], 'Cancelando...       '))
             print('\033[1F', end="")
             cancelar = COMMAND.cancelar_ordem(corretora, P1_menor[0]['id'], par_moeda_1)
-            if cancelar[1] == 301:
-                print('{} | {} | {} | {}'.format(par_moeda_1, preco_par_1, P1_menor[0]['filled'], 'Erro ao Cancelar'))
-                print('\033[1F', end="")
-                COMMAND.vender('mercado', corretora, par_moeda_1, P1_menor[0]['amount'], None, None)
-                print('\033[1F', end="")
-                verificar_P2 = COMMAND.verificar_ordens_em_aberto(corretora,par_moeda_1)
-                if verificar_P2[1] == 201:
-                    print('{} | {} | {} | {}'.format(par_moeda_3, preco_par_3, quantiadade_P1, 'Não há ordens em aberto'))
-                time.sleep(1)
-                print('\033[1F', end="")
-                print('{} | {} | {} | {}'.format(par_moeda_3, preco_par_3, quantiadade_P1, 'Retornando ao inicio'))
-                time.sleep(1)
-                print('\033[7F', end="")
-                procurar_oportunidades = True
-                continue
-            COMMAND.vender('mercado', corretora, par_moeda_1, P1_menor[0]['amount'], None, None)
+            if isinstance(cancelar, tuple):
+                if cancelar[1] == 201:
+                    informar(201,par_moeda_1,preco_par_1,P1_menor[0]['filled'])
+            else:
+                if cancelar == 500:
+                    informar(500, par_moeda_1,preco_par_1,P1_menor[0]['filled'])
+                elif cancelar == 401:
+                    informar(401, par_moeda_1,preco_par_1,P1_menor[0]['filled'])
+                    COMMAND.vender('mercado', corretora, par_moeda_1, P1_menor[0]['filled'], None, None)
+                    verificar_P1= COMMAND.verificar_ordens_em_aberto(corretora,par_moeda_1)
+                
+                if isinstance(verificar_P1, tuple): 
+                    if verificar_P1[1] == 202:
+                        informar(202, par_moeda_1,preco_par_1,P1_menor[0]['filled'])
+                        #acao para cancelar todas ordens em aberto
+                else:
+                    if verificar_P1 == 201:
+                        informar(201, par_moeda_1,preco_par_1,P1_menor[0]['filled'])
+                    if verificar_P1 == 401:
+                        informar(401, par_moeda_1,preco_par_1,P1_menor[0]['filled'])
+                    if verificar_P1 == 500:
+                        informar(500, par_moeda_1,preco_par_1,P1_menor[0]['filled'])
             procurar_oportunidades = True
             continue
 
