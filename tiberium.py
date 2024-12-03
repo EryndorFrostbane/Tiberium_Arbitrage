@@ -5,11 +5,7 @@ import pkg_resources
 import sys
 import exchanges
 import COMMAND
-"""
-HÁ DOIS PROBLEMAS PRINCIPAIS QUE AFETA O LUCRO:
-1 - NAS OPERAÇÕES A COMPRA E/OU VENDA NÃO É REALIZADA 100% DA QUANTIA
-2 - VERIFICAR A DISCREPANCIA DE PREÇOS PARA NÃO OPERAR COM SURTOS DE VOLATILIDADE
-"""
+
 def verifica_biblioteca_ccxt():
     # Nome do pacote
     package_name = 'ccxt'
@@ -92,7 +88,7 @@ def main():
     corretoras = exchanges.corretoras
 
     try:
-        ...
+        verifica_biblioteca_ccxt()
     except Exception as e:
         print(f"Erro: {e}")
     
