@@ -8,8 +8,8 @@
 
 <img src="imagem.png" alt="Exemplo imagem">
 
-> This system do Arbitrage at same exchange using 3 coins, the first a commom coin (XRP/USDT), the second a base coin (BNB/UDST) and the thirth pairing coin (XRP/BNB).
-> The system will make the exchanges until reaching the USDT currency with profit.
+>This system performs Arbitration on the same broker using 3 currencies, the first a common currency (XRP/USDT), the second a base currency (BNB/UDST) and the third pairing currency 
+>(XRP/BNB). The system will make the exchanges until it reaches the USDT currency with profit.
 
 ### Objective
 
