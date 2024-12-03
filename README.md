@@ -6,7 +6,7 @@
 ![GitHub open issues](https://img.shields.io/github/issues/EryndorFrostbane/Tiberium_Arbitrage?style=for-the-badge)
 ![GitHub open pull requests](https://img.shields.io/github/issues-pr/EryndorFrostbane/Tiberium_Arbitrage?style=for-the-badge)
 
-<img src="imagem.png" alt="Exemplo imagem">
+<img src="https://github.com/EryndorFrostbane/Tiberium_Arbitrage/blob/main/assets/running.gif" alt="Demo">
 
 >This system performs Arbitration on the same broker using 3 currencies, the first a common currency (XRP/USDT), the second a base currency (BNB/UDST) and the third pairing currency 
 >(XRP/BNB). The system will make the exchanges until it reaches the USDT currency with profit.
